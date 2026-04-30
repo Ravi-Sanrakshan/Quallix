@@ -1,0 +1,298 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quallis Hardware - Code Report</title>
+    <style>
+        :root {
+            --safe-color: #2e7d32;
+            --safe-bg: #e8f5e9;
+            --warning-color: #f57f17;
+            --warning-bg: #fffde7;
+            --danger-color: #c62828;
+            --danger-bg: #ffebee;
+            --text-main: #333;
+            --bg-main: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #1565c0;
+        }
+        .header p {
+            color: #666;
+            margin-top: 5px;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .controls {
+            padding: 20px;
+            background: #e3f2fd;
+            border-bottom: 1px solid #bbdefb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .controls label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #90caf9;
+            outline: none;
+            flex-grow: 1;
+            cursor: pointer;
+        }
+        .report-content {
+            padding: 30px;
+            display: none;
+        }
+        .report-content.active {
+            display: block;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .status-safe { background: var(--safe-bg); color: var(--safe-color); }
+        .status-warning { background: var(--warning-bg); color: var(--warning-color); }
+        .status-danger { background: var(--danger-bg); color: var(--danger-color); }
+        
+        .section {
+            margin-bottom: 20px;
+        }
+        .section h3 {
+            margin-bottom: 8px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            color: #444;
+        }
+        .section p {
+            line-height: 1.6;
+            margin: 0;
+        }
+        .empty-state {
+            padding: 50px;
+            text-align: center;
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<center>
+    <div class="header">
+        <h1>Quallis Hardware Diagnostics</h1>
+        <p>Interactive Code Report System</p>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <label for="codeSelect">Select Diagnostic Code:</label>
+            <select id="codeSelect" onchange="renderReport()">
+                <option value="" disabled selected>-- Select a Code --</option>
+                <optgroup label="Safe & Stable">
+                    <option value="A1Z">A1Z: Dry & Normal</option>
+                    <option value="C3X">C3X: Medium Moisture & Normal</option>
+                    <option value="E5V">E5V: Watery & Cold</option>
+                    <option value="J9R">J9R: Cold & Dry</option>
+                </optgroup>
+                <optgroup label="Warning Zones">
+                    <option value="B2Y">B2Y: Dry & Hot</option>
+                    <option value="D4W">D4W: Medium Moisture & Hot</option>
+                    <option value="F6U">F6U: Watery & Normal</option>
+                </optgroup>
+                <optgroup label="Danger & Extreme">
+                    <option value="G7T">G7T: Watery & Hot</option>
+                    <option value="H8S">H8S: Saturated</option>
+                    <option value="K0P">K0P: Overheated</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+            Please select a diagnostic code from the dropdown above to view its detailed report.
+        </div>
+
+        <div id="reportContainer" class="report-content">
+            <h2 id="codeTitle">Code</h2>
+            <div id="codeStatus" class="status-badge">Status</div>
+            
+            <div class="section">
+                <h3>Indication</h3>
+                <p id="codeIndication">...</p>
+            </div>
+            
+            <div class="section">
+                <h3>Risk</h3>
+                <p id="codeRisk">...</p>
+            </div>
+            
+            <div class="section">
+                <h3>Remedial Action</h3>
+                <p id="codeRemedial">...</p>
+            </div>
+            
+            <div class="section">
+                <h3>Improvement Tips</h3>
+                <p id="codeImprovement">...</p>
+            </div>
+        </div>
+    </div>
+</center>
+    <script>
+        const codeDatabase = {
+            "A1Z": {
+                title: "A1Z: Dry & Normal (27-31°C | Moisture: 700+)",
+                status: "Safe",
+                class: "status-safe",
+                indication: "The perfect ambient environment for pantry staples. Low moisture prevents mold, and normal room temperature prevents thermal breakdown.",
+                risk: "None required under current conditions.",
+                remedial: "Continue current storage protocols.",
+                improvement: "To maintain this state long-term, ensure foods are stored in airtight, dark containers to prevent pest intrusion and light-induced nutrient degradation."
+            },
+            "C3X": {
+                title: "C3X: Medium Moisture & Normal (27-31°C | Moisture: 500-699)",
+                status: "Safe / Watch",
+                class: "status-safe",
+                indication: "A balanced, room-temperature environment. Moisture is present but not excessive.",
+                risk: "Natural spoilage is ticking. These items are safe but actively progressing towards their expiration.",
+                remedial: "Monitor shelf life regularly.",
+                improvement: "Ensure items here are loosely packed. If packed too tightly, natural moisture release will become trapped, pushing the environment into a Watery state."
+            },
+            "E5V": {
+                title: "E5V: Watery & Cold (<27°C | Moisture: 300-499)",
+                status: "Safe (Refrigerated)",
+                class: "status-safe",
+                indication: "Cool, high-humidity storage. This mimics a standard refrigerator's crisper drawer.",
+                risk: "Prolonged surface water can encourage bacterial growth over time despite cold temperatures.",
+                remedial: "Maintain the cold chain and ensure the temperature remains constantly stable.",
+                improvement: "Use paper towels in storage containers to absorb excess surface water from washed produce to prolong freshness."
+            },
+            "J9R": {
+                title: "J9R: Cold & Dry (<27°C | Moisture: 700+)",
+                status: "Safe (Dry Storage)",
+                class: "status-safe",
+                indication: "Cool and arid conditions. Often indicates frozen dry goods, freeze-dried items, or a dehumidified storage room.",
+                risk: "High risk of thermal shock and condensation if moved improperly.",
+                remedial: "Keep conditions stable. Avoid bringing these items rapidly into a warm room.",
+                improvement: "Prevent 'thermal shock'. Allow items to come to room temperature slowly to prevent sudden condensation from ruining the dry state."
+            },
+            "B2Y": {
+                title: "B2Y: Dry & Hot (>31°C | Moisture: 700+)",
+                status: "Warning",
+                class: "status-warning",
+                indication: "An arid, hot environment. While mold isn't a massive risk, the heat will degrade food quality rapidly.",
+                risk: "Staling, loss of nutritional value, and oils in nuts/snacks turning rancid.",
+                remedial: "Move the food to a cooler, shaded environment immediately.",
+                improvement: "Improve ventilation in the storage area. Check if the pantry shares a wall with a heat source (like an oven or a sun-facing exterior wall)."
+            },
+            "D4W": {
+                title: "D4W: Medium Moisture & Hot (>31°C | Moisture: 500-699)",
+                status: "Warning",
+                class: "status-warning",
+                indication: "Warm and humid transition zone where food safety begins to compromise. Heat drives moisture out of food into the packaging.",
+                risk: "'Sweating' (condensation inside bags), early-stage mold, and accelerated bacterial growth.",
+                remedial: "Unseal packaging to let heat and trapped moisture escape, then relocate to a cooler zone.",
+                improvement: "Never use unperforated plastic bags for food storage in environments prone to these readings; switch to breathable paper or mesh."
+            },
+            "F6U": {
+                title: "F6U: Watery & Normal (27-31°C | Moisture: 300-499)",
+                status: "Warning / High Perishability",
+                class: "status-warning",
+                indication: "Room temperature combined with high free moisture. This is the biological 'danger zone' for rapid replication.",
+                risk: "Extremely high perishability. Food will spoil, sour, or mold very quickly.",
+                remedial: "Food must be consumed immediately, cooked, or moved into cold storage without delay.",
+                improvement: "Implement the '2-Hour Rule'—perishable, watery foods should never sit in this state for more than two hours."
+            },
+            "G7T": {
+                title: "G7T: Watery & Hot (>31°C | Moisture: 300-499)",
+                status: "Danger / Critical",
+                class: "status-danger",
+                indication: "A critical food safety failure. The environment is hot and wet—essentially an incubator for pathogens.",
+                risk: "Rapid fermentation, rotting, and severe risk of foodborne illnesses (e.g., Salmonella, E. coli).",
+                remedial: "If food has sat in this state for an extended period, DISCARD IT. If freshly cooked, blast-chill immediately.",
+                improvement: "Review your logistics and storage workflow. Food should never reach this state unless it is actively being cooked."
+            },
+            "H8S": {
+                title: "H8S: Saturated (Moisture: <300)",
+                status: "Danger / Sensor Alert",
+                class: "status-danger",
+                indication: "Sensor is reading extreme moisture. Probe is submerged, food is dripping wet, or there is a short circuit.",
+                risk: "Accelerated rotting for solid foods. Potential hardware damage to the moisture sensor over time via electrolysis.",
+                remedial: "Check food type (expected for liquids, dangerous for solids). Wipe the sensor prongs dry.",
+                improvement: "Frequent exposure can corrode standard analog probes. Consider coating the top circuitry of your moisture sensor in epoxy to prevent shorts."
+            },
+            "K0P": {
+                title: "K0P: Overheated (>40°C)",
+                status: "Danger / Infrastructure Alert",
+                class: "status-danger",
+                indication: "An extreme heat spike detected by the DHT sensor, regardless of moisture levels.",
+                risk: "Severe thermal damage. Proteins denature, plastics may leach chemicals, and spoilage is imminent.",
+                remedial: "Evacuate the food from the area immediately.",
+                improvement: "Investigate the environment. This code points to an infrastructure failure (broken fridge compressor, failed HVAC, or direct intense sunlight)."
+            }
+        };
+
+        function renderReport() {
+            const select = document.getElementById("codeSelect");
+            const selectedCode = select.value;
+            const emptyState = document.getElementById("emptyState");
+            const reportContainer = document.getElementById("reportContainer");
+
+            if (!selectedCode) {
+                emptyState.style.display = "block";
+                reportContainer.classList.remove("active");
+                return;
+            }
+
+            const data = codeDatabase[selectedCode];
+            
+            document.getElementById("codeTitle").textContent = data.title;
+            
+            const statusBadge = document.getElementById("codeStatus");
+            statusBadge.textContent = data.status;
+            statusBadge.className = "status-badge " + data.class;
+
+            document.getElementById("codeIndication").textContent = data.indication;
+            document.getElementById("codeRisk").textContent = data.risk;
+            document.getElementById("codeRemedial").textContent = data.remedial;
+            document.getElementById("codeImprovement").textContent = data.improvement;
+
+            emptyState.style.display = "none";
+            reportContainer.classList.add("active");
+        }
+    </script>
+</body>
+</html>
